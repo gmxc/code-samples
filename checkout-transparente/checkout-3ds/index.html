@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Transparente com 3DS Cielo</title>
+
+    <!-- Bootstrap -->
+    <!-- Não obrigatório, apenas usado para melhorar a aparência da página -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <!-- Fim Bootstrap -->
+</head>
+<body>
+    <form id="gmx-form" class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
+
+        <h1 class="py-5">Checkout Transparente com 3DS Cielo</h1>
+
+        <!-- Dados confidenciais -->
+        <section class="card my-2 border-danger">
+            <header class="card-header text-white bg-danger" data-toggle="collapse" data-target="#dados-confidenciais-body" style="cursor: pointer;">
+                Dados Confidenciais
+            </header>
+            <main id="dados-confidenciais-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações nunca devem ser expostas ao cliente, e estão nesta página apenas para fins de exemplo.
+                        Em uma aplicação real, apenas o servidor back-end deve ter acesso a estes dados (mesmo em SPAs).
+                    </p>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Hash da Empresa</label>
+                            <input type="text" name="empresa.hashEmpresa" class="form-control" placeholder="Hash da Empresa" required>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados confidenciais -->
+
+        <!-- Dados preparatórios -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-preparatorios-body" style="cursor: pointer;">
+                Dados Preparatórios
+            </header>
+            <main id="dados-preparatorios-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações devem ser obtidas antes da abertura da página de checkout pelo endpoint de preparação de venda.
+                        Estes dados podem ser expostos ao cliente sem problemas, porém geralmente não são visíveis ao usuário final.
+                    </p>
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>Token de Transação</label>
+                            <input 
+                                id="gmx-transaction-token"
+                                type="text" 
+                                class="form-control" 
+                                placeholder="Token de Transação" 
+                                required 
+                            >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-2 form-group">
+                            <label>Versão 3DS</label>
+                            <input 
+                                type="number" 
+                                name="venda3ds.version"
+                                class="form-control" 
+                                placeholder="Versão 3DS" 
+                                required 
+                                min="0"
+                                step="1"
+                                value="2"
+                            >
+                        </div>
+                        <div class="col-lg-2 form-group">
+                            <label>Provedor 3DS</label>
+                            <input 
+                                type="text" 
+                                name="venda3ds.provider"
+                                class="form-control" 
+                                placeholder="Provedor 3DS" 
+                                required 
+                                value="CIELO"
+                            >
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Access Token 3DS Cielo</label>
+                            <!-- A classe bpmpi_accesstoken é obrigatória, indicando ao script 3DS 2.0 da Cielo que este input contém o access token. -->
+                            <input type="text" class="form-control bpmpi_accesstoken" placeholder="Access Token 3DS Cielo" required>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados preparatórios -->
+
+        <!-- Dados gmxCheckout -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-gmxcheckout-body" style="cursor: pointer;">
+                Dados gmxCheckout
+            </header>
+            <main id="dados-gmxcheckout-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações são requeridas pelo gmxCheckout para a criação de uma venda.
+                        Apenas os campos obrigatórios são especificados &mdash; veja a documentação do gmxCheckout para uma lista de todos os campos.
+                    </p>                    
+                    <!-- Dados Hidden -->
+                    <input type="hidden" name="restApi" value="true"> <!-- Sempre true para ter retorno JSON -->
+                    <input type="hidden" name="venda.modalidadeVenda" value="" id="gmx-modalidade-venda"> <!-- Será preenchido por JavaScript (veja script.js) -->
+                    <input type="hidden" name="cartaoCredito.bandeira" value="" id="gmx-cartao-bandeira"> <!-- Será preenchido por JavaScript (veja script.js) -->
+                    <!-- Fim Dados Hidden -->
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>Nome do Consumidor</label>
+                            <!-- Note a classe bpmpi_billto_contactname, que identifica este campo para o script de 3DS 2.0 da Cielo. -->
+                            <input 
+                                type="text" 
+                                name="venda.consumidor.nome"
+                                class="form-control bpmpi_billto_contactname" 
+                                placeholder="Nome do Consumidor" 
+                                required 
+                                maxlength="60" 
+                                value="Fulano da Silva Júnior"
+                            >
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Valor (em centavos de Real)</label>
+                            <!-- Note a classe bpmpi_totalamount, que identifica este campo para o script de 3DS 2.0 da Cielo. -->
+                            <input 
+                                type="number" 
+                                name="venda.valor" 
+                                class="form-control bpmpi_totalamount" 
+                                placeholder="Valor (em centavos de Real)" 
+                                required 
+                                min="0" 
+                                step="1" 
+                                value="100"
+                            >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-6 form-group">
+                            <label>Número do Cartão</label>
+                            <div class="input-group">
+                                <!-- Note a classe bpmpi_cardnumber, que identifica este campo para o script de 3DS 2.0 da Cielo. -->
+                                <input 
+                                    id="gmx-card-number"
+                                    type="text" 
+                                    name="cartaoCredito.numero"
+                                    class="form-control bpmpi_cardnumber" 
+                                    placeholder="Número do Cartão" 
+                                    required 
+                                    maxlength="20" 
+                                    pattern="^\d+$"
+                                    value="4000000000001091"
+                                >
+                                <div class="input-group-append">
+                                    <span id="gmx-card-loading" class="input-group-text" style="display: none;">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </span>
+                                    <span id="gmx-card-type" class="input-group-text" style="display: none;">Crédito</span>
+                                    <span id="gmx-card-bandeira" class="input-group-text" style="display: none;">Visa</span>
+                                    <span id="gmx-card-error" class="input-group-text text-danger" style="display: none;">Erro</span>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Apenas dígitos</small>
+                        </div>
+                        <div class="col-lg-3 form-group">
+                            <label>Validade</label>
+                            <div class="input-group">
+                                <!-- Note a classe bpmpi_cardexpirationmonth, que identifica este campo para o script de 3DS 2.0 da Cielo. -->
+                                <select class="form-control bpmpi_cardexpirationmonth" name="cartaoCredito.mesValidade" required>
+                                    <option value="1">Jan</option>
+                                    <option value="2">Fev</option>
+                                    <option value="3">Mar</option>
+                                    <option value="4">Abr</option>
+                                    <option value="5">Mai</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Jul</option>
+                                    <option value="8">Ago</option>
+                                    <option value="9">Set</option>
+                                    <option value="10">Out</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dez</option>
+                                </select>
+                                <!-- Note a classe bpmpi_cardexpirationyear, que identifica este campo para o script de 3DS 2.0 da Cielo. -->
+                                <input
+                                    type="number"
+                                    name="cartaoCredito.anoValidade"
+                                    class="form-control bpmpi_cardexpirationyear"
+                                    placeholder="Ano"
+                                    required
+                                    min="2020"
+                                    max="9999"
+                                    value="2040"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-lg-3 form-group">
+                            <label>CVV</label>
+                            <input
+                                type="text"
+                                name="cartaoCredito.codSeguranca"
+                                class="form-control"
+                                placeholder="CVV"
+                                required
+                                maxlength="4"
+                                value="123"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados gmxCheckout -->
+        
+        <!-- Dados 3DS -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-3ds-body" style="cursor: pointer;">
+                Dados 3DS
+            </header>
+            <main id="dados-3ds-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações são requeridas pelo 3DS 2.0 da Cielo.
+                        Apenas os campos obrigatórios são especificados &mdash; veja a documentação do 3DS 2.0 da Cielo para uma lista de todos os campos.
+                        Quanto mais campos informados, menor o risco de fraude.
+                    </p>    
+                    
+                    <!-- Campos 3DS do gmxCheckout -->
+                    <!-- Todos estes campos serão populados por JavaScript (veja script.js) -->
+                    <input type="hidden" id="gmx-3ds-cavv" name="venda3ds.cavv">
+                    <input type="hidden" id="gmx-3ds-xid" name="venda3ds.xid">
+                    <input type="hidden" id="gmx-3ds-eci" name="venda3ds.eci">
+                    <input type="hidden" id="gmx-3ds-reference-id" name="venda3ds.referenceId">
+                    <!-- Fim campos 3DS do gmxCheckout -->
+                    
+
+                    <!-- 
+                        Note que o script de 3DS 2.0 da Cielo não utiliza 'name' para especificar o 
+                        significado de cada campo, e sim classe CSS iniciada por 'bpmpi_'.
+
+                        Alguns campos obrigatórios não estão aqui. Estes são:
+                        - bpmpi_accesstoken: No card de 'dados preparatórios'
+                        - bpmpi_totalamount: No card de 'dados gmxCheckout'
+                        - bpmpi_cardnumber: No card de 'dados gmxCheckout'
+                        - bpmpi_cardexpirationmonth: No card de 'dados gmxCheckout'
+                        - bpmpi_cardexpirationyear: No card de 'dados gmxCheckout'
+                        - bpmpi_billto_contactname: No card de 'dados gmxCheckout'
+                    -->
+                    
+                    <!-- Dados Hidden -->
+                    <input type="hidden" class="bpmpi_auth" value="true"> <!-- Sempre 'true' para ativar autenticação 3DS -->
+                    <input type="hidden" class="bpmpi_currency" value="BRL"> <!-- Apenas 'BRL' é suportado para a moeda. -->
+                    <input type="hidden" class="bpmpi_paymentmethod" value=""> <!-- Será populado por JavaScript (veja script.js) -->
+                    <!-- 
+                        Assume-se pagamento à vista (não parcelado) para esta página de exemplo.
+                        Veja a documentação de vendas do gmxCheckout para saber como fazer vendas parceladas.
+                    -->
+                    <input type="hidden" class="bpmpi_installments" value="1">
+                    <!-- Fim Dados Hidden -->
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Site de sua empresa</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_merchant_url form-control" 
+                                placeholder="Código do Pedido" 
+                                value="https://example.com" 
+                                required
+                            >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-6 form-group">
+                            <label>Código do Pedido</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_ordernumber form-control" 
+                                placeholder="Código do Pedido" 
+                                value="EXEMPLO" 
+                                required
+                                maxlength="50"
+                            >
+                            <small class="form-text text-muted">Código que identifica este pedido em seu sistema</small>
+                        </div>
+                        <div class="col-lg-6 form-group">
+                            <label>Tipo da Compra</label>
+                            <select class="form-control bpmpi_order_productcode" required>
+                                <option value="PHY" selected>Compra de mercadorias</option>
+                                <option value="CHA">Check acceptance</option>
+                                <option value="ACF">Financiamento de conta</option>
+                                <option value="QCT">Transação quase-dinheiro</option>
+                                <option value="PAL">Recarga</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-6 form-group">
+                            <label>Telefone do consumidor</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_billTo_phonenumber form-control" 
+                                placeholder="Telefone do consumidor" 
+                                value="5511999999999" 
+                                required
+                                pattern="^55\d*$"
+                                maxlength="15"
+                            >
+                            <small class="form-text text-muted">Apenas números, no formato 5511999999999</small>
+                        </div>
+                        <div class="col-lg-6 form-group">
+                            <label>Email do consumidor</label>
+                            <input 
+                                type="email" 
+                                class="bpmpi_billTo_email form-control" 
+                                placeholder="Email do consumidor" 
+                                value="example@example.com" 
+                                required
+                                maxlength="255"
+                            >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>País</label>                            
+                            <input 
+                                type="text" 
+                                class="bpmpi_billto_country form-control" 
+                                placeholder="País" 
+                                value="BR" 
+                                required
+                                maxlength="2"
+                                minlength="2"
+                            >
+                            <small class="form-text text-muted"><a href="https://www.iso.org/obp/ui/#search/code/" target="_blank" rel="nofollow noopener noreferrer">Código ISO 3166-1 alpha-2</a></small>
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Estado</label>                            
+                            <input 
+                                type="text" 
+                                class="bpmpi_billTo_state form-control" 
+                                placeholder="País" 
+                                value="SP" 
+                                required
+                                maxlength="2"
+                                minlength="2"
+                            >
+                            <small class="form-text text-muted">Sigla de duas letras</small>
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Cidade</label>                            
+                            <input 
+                                type="text" 
+                                class="bpmpi_billTo_city form-control" 
+                                placeholder="Cidade" 
+                                value="São Paulo" 
+                                required
+                                maxlength="50"
+                            >
+                        </div>
+                    </div>   
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>CEP</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_billto_zipcode form-control" 
+                                placeholder="CEP" 
+                                value="15260000" 
+                                required
+                                maxlength="8"
+                                pattern="^\d+$"
+                            >
+                            <small class="form-text text-muted">Apenas números</small>
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Logradouro e Número</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_billTo_street1 form-control" 
+                                placeholder="Logradouro e Número" 
+                                value="Rua Exemplo, 123" 
+                                required
+                                maxlength="60"
+                            >
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Complemento e Bairro</label>
+                            <input 
+                                type="text" 
+                                class="bpmpi_billTo_street2 form-control" 
+                                placeholder="Complemento e Bairro" 
+                                value="Apartamento 123, Centro" 
+                                required
+                                maxlength="60"
+                            >
+                        </div>
+                    </div>             
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados 3DS -->
+
+        <button class="btn btn-success btn-block btn-lg my-5">
+            <span id="gmx-enviar-loading" class="spinner-border" style="display: none;"></span>
+            <span id="gmx-enviar-text">Enviar</span>
+        </button>
+    </form>
+
+    <script src="./script.js"></script>
+    <!--
+        Normalmente, o script de 3DS 2.0 da Cielo seria carregado de forma estática na página, como na tag script comentada abaixo,
+        já que seu Access Token estaria em um input hidden populado pelo back-end antes do envio da página ao cliente.
+
+        Porém, como nesta página de exemplo o Access Token é inserido manualmente após o carregamento da página, o script de 3DS 2.0
+        da Cielo é carregado dinâmicamente por JavaScript.
+        Isto não é necessário em produção.
+
+        Obs: A Cielo recomenda que o script seja servido localmente do mesmo servidor que serve a página de checkout.
+        Utilizamos uma versão não-local apenas para fins de exemplo. 
+
+        <script src="https://mpisandbox.braspag.com.br/Scripts/BP.Mpi.3ds20.min.js"></script>
+    -->
+</body>
+</html>

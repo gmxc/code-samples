@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Transparente Simples</title>
+
+    <!-- Bootstrap -->
+    <!-- Não obrigatório, apenas usado para melhorar a aparência da página -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <!-- Fim Bootstrap -->
+</head>
+<body>
+    <form class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
+
+        <h1 class="py-5">Checkout Transparente Simples</h1>
+
+        <!-- Dados confidenciais -->
+        <section class="card my-2 border-danger">
+            <header class="card-header text-white bg-danger" data-toggle="collapse" data-target="#dados-confidenciais-body" style="cursor: pointer;">
+                Dados Confidenciais
+            </header>
+            <main id="dados-confidenciais-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações nunca devem ser expostas ao cliente, e estão nesta página apenas para fins de exemplo.
+                        Em uma aplicação real, apenas o servidor back-end deve ter acesso a estes dados (mesmo em SPAs).
+                    </p>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Hash da Empresa</label>
+                            <input type="text" name="empresa.hashEmpresa" class="form-control" placeholder="Hash da Empresa" required>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados confidenciais -->
+
+        <!-- Dados preparatórios -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-preparatorios-body" style="cursor: pointer;">
+                Dados Preparatórios
+            </header>
+            <main id="dados-preparatorios-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações devem ser obtidas antes da abertura da página de checkout pelo endpoint de preparação de venda.
+                        Estes dados podem ser expostos ao cliente sem problemas, porém geralmente não são visíveis ao usuário final.
+                    </p>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Token de Transação</label>
+                            <input 
+                                id="gmx-transaction-token"
+                                type="text" 
+                                class="form-control" 
+                                placeholder="Token de Transação" 
+                                required
+                            >
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados preparatórios -->
+
+        <!-- Dados gmxCheckout -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-gmxcheckout-body" style="cursor: pointer;">
+                Dados gmxCheckout
+            </header>
+            <main id="dados-gmxcheckout-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações são requeridas pelo gmxCheckout para a criação de uma venda.
+                        Apenas os campos obrigatórios são especificados &mdash; veja a documentação do gmxCheckout para uma lista de todos os campos.
+                    </p>                    
+                    <!-- Dados Hidden -->
+                    <input type="hidden" name="restApi" value="true"> <!-- Sempre true para ter retorno JSON -->
+                    <input type="hidden" name="venda.modalidadeVenda" value="" id="gmx-modalidade-venda"> <!-- Será preenchido por JavaScript (veja script.js) -->
+                    <input type="hidden" name="cartaoCredito.bandeira" value="" id="gmx-cartao-bandeira"> <!-- Será preenchido por JavaScript (veja script.js) -->        
+                    <!-- Fim Dados Hidden -->
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>Nome do Consumidor</label>
+                            <input 
+                                type="text" 
+                                name="venda.consumidor.nome"
+                                class="form-control" 
+                                placeholder="Nome do Consumidor" 
+                                required 
+                                maxlength="60" 
+                                value="Fulano da Silva Júnior"
+                            >
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Valor (em centavos de Real)</label>
+                            <input 
+                                type="number" 
+                                name="venda.valor" 
+                                class="form-control" 
+                                placeholder="Valor (em centavos de Real)" 
+                                required 
+                                min="0" 
+                                step="1" 
+                                value="100"
+                            >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-6 form-group">
+                            <label>Número do Cartão</label>
+                            <div class="input-group">
+                                <input 
+                                    id="gmx-card-number"
+                                    type="text" 
+                                    name="cartaoCredito.numero"
+                                    class="form-control" 
+                                    placeholder="Número do Cartão" 
+                                    required 
+                                    maxlength="20" 
+                                    pattern="^\d+$"
+                                    value="0000000000000004"
+                                >
+                                <div class="input-group-append">
+                                    <span id="gmx-card-loading" class="input-group-text" style="display: none;">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </span>
+                                    <span id="gmx-card-type" class="input-group-text" style="display: none;">Crédito</span>
+                                    <span id="gmx-card-bandeira" class="input-group-text" style="display: none;">Visa</span>
+                                    <span id="gmx-card-error" class="input-group-text text-danger" style="display: none;">Erro</span>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Apenas dígitos</small>
+                        </div>
+                        <div class="col-lg-3 form-group">
+                            <label>Validade</label>
+                            <div class="input-group">
+                                <select class="form-control" name="cartaoCredito.mesValidade" required>
+                                    <option value="1">Jan</option>
+                                    <option value="2">Fev</option>
+                                    <option value="3">Mar</option>
+                                    <option value="4">Abr</option>
+                                    <option value="5">Mai</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Jul</option>
+                                    <option value="8">Ago</option>
+                                    <option value="9">Set</option>
+                                    <option value="10">Out</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dez</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    name="cartaoCredito.anoValidade"
+                                    class="form-control"
+                                    placeholder="Ano"
+                                    required
+                                    min="2020"
+                                    max="9999"
+                                    value="2040"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-lg-3 form-group">
+                            <label>CVV</label>
+                            <input
+                                type="text"
+                                name="cartaoCredito.codSeguranca"
+                                class="form-control"
+                                placeholder="CVV"
+                                required
+                                maxlength="4"
+                                value="123"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados gmxCheckout -->
+
+
+        <button class="btn btn-success btn-block btn-lg my-5">Enviar</button>
+    </form>
+
+    <script src="./script.js"></script>
+</body>
+</html>
