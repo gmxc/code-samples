@@ -38,16 +38,19 @@ async function refreshCardData() {
     try {
         const data = await getCardData();
 
-        if (data.type === "CREDIT") {
+        if (data.cardType === "credito") {
             cardTypeElem.innerText = "Crédito";
             modalidadeVendaElem.value = "1";
-        } else {
+        } else if (data.cardType === "debito") {
+            cardTypeElem.innerText = "Débito";
+            modalidadeVendaElem.value = "0";
+        }else {
             cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
         }
 
-        cardBandeiraElem.innerText = data.bandeira;
-        cartaoBandeiraElem.value = data.bandeira;
+        cardBandeiraElem.innerText = data.provider;
+        cartaoBandeiraElem.value = data.provider;
 
         toggle(true, cardTypeElem, cardBandeiraElem);
 
@@ -72,9 +75,9 @@ async function getCardData() {
     // Preparar dados que serão enviados ao gmxCheckout
     const body = new URLSearchParams();
     body.append("transactionToken", getTransactionToken());
-    body.append("cartaoCredito.numero", cardNumberElem.value || "");
+    body.append("bin", cardNumberElem.value || "");
 
-    const response = await fetch(GMXCHECKOUT_BASE_URL + "/txn/getCardData", {
+    const response = await fetch(GMXCHECKOUT_BASE_URL + "/api/consultaCartaoBin", {
         method: "POST",
         body
     });
@@ -84,11 +87,11 @@ async function getCardData() {
     }
 
     const json = await response.json();
-    if (json.status !== "success") {
+    if (json.status !== "00") {
         throw new Error(json.errorMessage || "Erro desconhecido");
     }
 
-    return json.value;
+    return json;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -96,5 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Equivalente ao $.ready do jQuery
 
     document.getElementById("gmx-card-number").addEventListener("change", () => refreshCardData());
-    refreshCardData();
+
+    // Atualiza tipo e bandeira docartão após inserção do token de transação
+    document.getElementById("gmx-transaction-token").addEventListener("change", () => refreshCardData());
+
+    refreshCardData(); // Atualizar dados do cartão imediatamente após carregamento da página também
 });

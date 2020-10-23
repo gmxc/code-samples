@@ -19,28 +19,6 @@
 
         <h1 class="py-5">Checkout Transparente Simples</h1>
 
-        <!-- Dados confidenciais -->
-        <section class="card my-2 border-danger">
-            <header class="card-header text-white bg-danger" data-toggle="collapse" data-target="#dados-confidenciais-body" style="cursor: pointer;">
-                Dados Confidenciais
-            </header>
-            <main id="dados-confidenciais-body" class="collapse show">
-                <div class="card-body container-fluid">
-                    <p>
-                        Estas informações nunca devem ser expostas ao cliente, e estão nesta página apenas para fins de exemplo.
-                        Em uma aplicação real, apenas o servidor back-end deve ter acesso a estes dados (mesmo em SPAs).
-                    </p>
-                    <div class="form-row">
-                        <div class="col form-group">
-                            <label>Hash da Empresa</label>
-                            <input type="text" name="empresa.hashEmpresa" class="form-control" placeholder="Hash da Empresa" required>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </section>
-        <!-- Fim dados confidenciais -->
-
         <!-- Dados preparatórios -->
         <section class="card my-2">
             <header class="card-header" data-toggle="collapse" data-target="#dados-preparatorios-body" style="cursor: pointer;">
@@ -55,7 +33,8 @@
                     <div class="form-row">
                         <div class="col form-group">
                             <label>Token de Transação</label>
-                            <input 
+                            <input
+                                name="transactionToken"
                                 id="gmx-transaction-token"
                                 type="text" 
                                 class="form-control" 
