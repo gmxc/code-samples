@@ -1,6 +1,7 @@
 "use strict";
 
 /** URL base do GmxCheckout. */
+// const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
 const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
 
 const CIELO_3DS_CONFIG = {
@@ -75,8 +76,8 @@ async function refreshCardData() {
     const cardBandeiraElem = document.getElementById("gmx-card-bandeira");
     const cardErrorElem = document.getElementById("gmx-card-error");
 
-    const modalidadeVendaElem = document.getElementById("gmx-modalidade-venda");
-    const cartaoBandeiraElem = document.getElementById("gmx-cartao-bandeira");
+    const modalidadeVendaElem = document.getElementById("gmx-venda-modalidade");
+    const vendaBandeiraElem = document.getElementById("gmx-venda-bandeira");
     const bpmpiPaymentMethodElem = document.querySelector(".bpmpi_paymentmethod");
 
     // Exibir apenas elemento de "loading"
@@ -92,13 +93,16 @@ async function refreshCardData() {
         } else if (data.cardType === "debito") {
             cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
-        }else {
+        } else {
+            // Somente para exemplo, pois existe a possibilidade do cardType ser "multiplo", ou seja, permitir
+            // transação como crédito ou débito
+            // Nesse caso é interessante criar um radiobutton para o cliente escolher qual a modalidade de sua compra
             cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
         }
 
         cardBandeiraElem.innerText = data.provider;
-        cartaoBandeiraElem.value = data.provider;
+        vendaBandeiraElem.value = data.provider;
 
         toggle(true, cardTypeElem, cardBandeiraElem);
 
@@ -221,12 +225,66 @@ function end3dsAuthenticationError(message) {
     alert("Erro durante autenticação 3DS: " + message);
 }
 
+
+function getFormDataWithout3DS(){
+
+    const vendaModalidade = document.getElementById("gmx-venda-modalidade");
+    const vendaValor = document.getElementById("gmx-venda-valor");
+    const consumidorNome = document.getElementById("gmx-consumidor-nome");
+
+    const cartaoNumero = document.getElementById("gmx-card-number");
+    const cartaoCodigoSeguranca = document.getElementById("gmx-card-codigo-seguranca");
+    const cartaoMesValidade = document.getElementById("gmx-card-mes-validade");
+    const cartaoAnoValidade = document.getElementById("gmx-card-ano-validade");
+    const cartaoBandeira = document.getElementById("gmx-venda-bandeira");
+    const restApi = document.getElementById("restApi");
+    
+    return {
+        "transactionToken":  getTransactionToken(),
+
+        "venda.modalidadeVenda":  vendaModalidade ? vendaModalidade.value : "",
+        "venda.valor":  vendaValor ? vendaValor.value : "",
+        "venda.consumidor.nome":  consumidorNome ? consumidorNome.value : "",
+
+        "cartaoCredito.numero":  cartaoNumero ? cartaoNumero.value : "",
+        "cartaoCredito.codSeguranca":  cartaoCodigoSeguranca ? cartaoCodigoSeguranca.value : "",
+        "cartaoCredito.mesValidade":  cartaoMesValidade ? cartaoMesValidade.value : "",
+        "cartaoCredito.anoValidade":   cartaoAnoValidade ? cartaoAnoValidade.value : "",
+        "cartaoCredito.bandeira":  cartaoBandeira ? cartaoBandeira.value : "",
+        "restApi":  true
+    }
+}
+
+// Função para tentativa de venda sem autenticação 3DS, somente efetuada caso a venda seja na modalidade crédito
+function tryToBuyWithout3DS(message){
+    const MODALIDADE_CARTAO_CREDITO = "1";
+    const modalidadeVendaElem = document.getElementById("gmx-venda-modalidade");
+    
+    if (modalidadeVendaElem.value === MODALIDADE_CARTAO_CREDITO){
+        // Busca as informações pertinentes à venda
+        const purchaseData = getFormDataWithout3DS();
+
+        // Exemplo de chamada para venda comum, sem 3DS
+        // Para tal, nenhum dado de venda 3DS deve ser fornecida 
+        $.post(GMXCHECKOUT_BASE_URL + "/txn/post",
+        purchaseData,
+        function(data,status){
+            var docPage = document.open("text/html", "replace");
+            docPage.write(data);
+            docPage.close();
+        });
+    } else {
+        end3dsAuthenticationError(message);
+    }
+}
+
+
 /**
  * Retorna a configuração usada pelo script 3DS 2.0 da Cielo.
  * Esta função é chamada diretamente pelo script da Cielo e deve ter este exato nome.
  * Garanta que a função é definida antes do script da Cielo ser carregado.
  */
-const bpmpi_config = () => ({	
+const bpmpi_config = () => ({
     Environment: CIELO_3DS_CONFIG.useSandbox ? "SDB" : "PRD",
     Debug: CIELO_3DS_CONFIG.enableDebug,
 
@@ -255,10 +313,11 @@ const bpmpi_config = () => ({
     },
     
     // Várias funções executadas quando uma autenticação requisitada falhou por diversos motivos
-    onFailure:          () => end3dsAuthenticationError("Autenticação falhou"),
-    onUnenrolled:       () => end3dsAuthenticationError("Cartão não elegível para autenticação"),
-    onDisabled:         () => end3dsAuthenticationError("Empresa desabilitou autenticação"),
-    onUnsupportedBrand: () => end3dsAuthenticationError("Bandeira não suporta autenticação"),
+    // Uma opção é capturarmos o erro e redirecionarmos para tentativa de venda sem autenticação 3DS
+    onFailure:          () => tryToBuyWithout3DS("Autenticação falhou"),
+    onUnenrolled:       () => tryToBuyWithout3DS("Cartão não elegível para autenticação"),
+    onDisabled:         () => tryToBuyWithout3DS("Empresa desabilitou autenticação"),
+    onUnsupportedBrand: () => tryToBuyWithout3DS("Bandeira não suporta autenticação"),
 });
 
 document.addEventListener("DOMContentLoaded", () => {

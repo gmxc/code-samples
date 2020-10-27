@@ -45,6 +45,9 @@ async function refreshCardData() {
             cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
         }else {
+            // Somente para exemplo, pois existe a possibilidade do cardType ser "multiplo", ou seja, permitir
+            // transação como crédito ou débito
+            // Nesse caso é interessante criar um radiobutton para o cliente escolher qual a modalidade de sua compra
             cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
         }
