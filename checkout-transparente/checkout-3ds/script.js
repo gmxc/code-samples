@@ -2,7 +2,7 @@
 
 /** URL base do GmxCheckout. */
 // const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
-const GMXCHECKOUT_BASE_URL = "http://localhost:9088";
+const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
 
 const CIELO_3DS_CONFIG = {
     /**
