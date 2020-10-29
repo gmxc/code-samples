@@ -2,7 +2,7 @@
 
 /** URL base do GmxCheckout. */
 // const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
-const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
+const GMXCHECKOUT_BASE_URL = "http://localhost:9088";
 
 const CIELO_3DS_CONFIG = {
     /**
@@ -72,46 +72,104 @@ function getTransactionToken() {
 /** Atualiza os dados do cartão. Deve ser chamado após o número do cartão ser alterado pelo usuário. */
 async function refreshCardData() {
     const loadingElem = document.getElementById("gmx-card-loading");
-    const cardTypeElem = document.getElementById("gmx-card-type");
-    const cardBandeiraElem = document.getElementById("gmx-card-bandeira");
     const cardErrorElem = document.getElementById("gmx-card-error");
+    const cardInfoOkElem = document.getElementById("gmx-card-info-ok");
 
     const modalidadeVendaElem = document.getElementById("gmx-venda-modalidade");
-    const vendaBandeiraElem = document.getElementById("gmx-venda-bandeira");
-    const bpmpiPaymentMethodElem = document.querySelector(".bpmpi_paymentmethod");
+    
+    const bandeiraElem = document.getElementById("bandeira");
+    const cardType = document.getElementById("cardType");
 
     // Exibir apenas elemento de "loading"
     toggle(true, loadingElem);
-    toggle(false, cardTypeElem, cardBandeiraElem, cardErrorElem);
+    toggle(false, cardErrorElem, cardInfoOkElem);
 
     try {
         const data = await getCardData();
 
         if (data.cardType === "credito") {
-            cardTypeElem.innerText = "Crédito";
-            modalidadeVendaElem.value = "1";
+            // Utilizada modalidade de venda = 2 (parcelamento pela loja) 
+            modalidadeVendaElem.value = "2";
+            cardType.value = "1";
         } else if (data.cardType === "debito") {
-            cardTypeElem.innerText = "Débito";
             modalidadeVendaElem.value = "0";
+            cardType.value = "0";
         } else {
-            // Somente para exemplo, pois existe a possibilidade do cardType ser "multiplo", ou seja, permitir
-            // transação como crédito ou débito
-            // Nesse caso é interessante criar um radiobutton para o cliente escolher qual a modalidade de sua compra
-            cardTypeElem.innerText = "Débito";
-            modalidadeVendaElem.value = "0";
+            cardType.value = "2";
         }
 
-        cardBandeiraElem.innerText = data.provider;
-        vendaBandeiraElem.value = data.provider;
+        bandeiraElem.value = data.provider;
 
-        toggle(true, cardTypeElem, cardBandeiraElem);
+        toggle(true, cardInfoOkElem);
 
     } catch (e) {
         console.error(e);
         toggle(true, cardErrorElem);
-
+        cardType.value = "2";
     } finally {
         toggle(false, loadingElem);
+    }
+
+    refreshInstallmentList();
+}
+
+/**
+ * Atualiza a modalidade da venda - em caso de débito será "0" e se selecionado crédito, indica que o parcelamento será realizado pela loja (2).
+ */
+function refreshVendaModalidade() {
+    const paymentInstallments = document.getElementById("payment-installments");
+    const modalidadeVendaElem = document.getElementById("gmx-venda-modalidade");
+
+    if (paymentInstallments.value === ""){
+        modalidadeVendaElem.value = "";
+        return;
+    }
+
+    if (paymentInstallments.value === "0") {
+        modalidadeVendaElem.value = "0";
+    } else {
+        modalidadeVendaElem.value = "2";
+    }
+}
+
+/**
+ * Cria select com lista de opções de pagamento e parcelamento.
+ */ 
+function refreshInstallmentList() {
+    const SELECIONE         = new Option("Selecione"                 ,       ""  );
+    const DEBITO            = new Option("Débito"                    ,       "0" );
+    const CREDITO_1x        = new Option("Crédito - parcela única"   ,       "1" );
+    const CREDITO_2x        = new Option("Crédito - parcelada em 2x" ,       "2" );
+    const CREDITO_3x        = new Option("Crédito - parcelada em 3x" ,       "3" );
+    const CREDITO_4x        = new Option("Crédito - parcelada em 4x" ,       "4" );
+    const CREDITO_5x        = new Option("Crédito - parcelada em 5x" ,       "5" );
+    const CREDITO_6x        = new Option("Crédito - parcelada em 6x" ,       "6" );
+    const CREDITO_7x        = new Option("Crédito - parcelada em 7x" ,       "7" );
+    const CREDITO_8x        = new Option("Crédito - parcelada em 8x" ,       "8" );
+    const CREDITO_9x        = new Option("Crédito - parcelada em 9x" ,       "9" );
+    const CREDITO_10x       = new Option("Crédito - parcelada em 10x",       "10");
+    const CREDITO_11x       = new Option("Crédito - parcelada em 11x",       "11");
+    const CREDITO_12x       = new Option("Crédito - parcelada em 12x",       "12");
+
+    const CREDITO = [ CREDITO_1x, CREDITO_2x, CREDITO_3x, CREDITO_4x, CREDITO_5x, CREDITO_6x, CREDITO_7x,
+                        CREDITO_8x, CREDITO_9x, CREDITO_10x, CREDITO_11x, CREDITO_12x ];
+
+    const cardType = document.getElementById("cardType");
+    jQuery('#payment-installments').empty();
+    if (cardType.value === "0") {
+        jQuery('#payment-installments').append(DEBITO);
+        jQuery('#venda-parcelada').empty();
+    } else if (cardType.value === "1"){
+        jQuery('#payment-installments').append(SELECIONE);
+        CREDITO.forEach( (creditoOption) => {
+            jQuery('#payment-installments').append(creditoOption);
+        });
+    } else {
+        jQuery('#payment-installments').append(SELECIONE);
+        jQuery('#payment-installments').append(DEBITO);
+        CREDITO.forEach( (creditoOption) => {
+            jQuery('#payment-installments').append(creditoOption);
+        });        
     }
 }
 
@@ -230,20 +288,22 @@ function getFormDataWithout3DS(){
 
     const vendaModalidade = document.getElementById("gmx-venda-modalidade");
     const vendaValor = document.getElementById("gmx-venda-valor");
+    const paymentInstallments = document.getElementById("payment-installments");
     const consumidorNome = document.getElementById("gmx-consumidor-nome");
 
     const cartaoNumero = document.getElementById("gmx-card-number");
     const cartaoCodigoSeguranca = document.getElementById("gmx-card-codigo-seguranca");
     const cartaoMesValidade = document.getElementById("gmx-card-mes-validade");
     const cartaoAnoValidade = document.getElementById("gmx-card-ano-validade");
-    const cartaoBandeira = document.getElementById("gmx-venda-bandeira");
+    const cartaoBandeira = document.getElementById("bandeira");
     const restApi = document.getElementById("restApi");
     
-    return {
+    var body = {
         "transactionToken":  getTransactionToken(),
 
         "venda.modalidadeVenda":  vendaModalidade ? vendaModalidade.value : "",
         "venda.valor":  vendaValor ? vendaValor.value : "",
+
         "venda.consumidor.nome":  consumidorNome ? consumidorNome.value : "",
 
         "cartaoCredito.numero":  cartaoNumero ? cartaoNumero.value : "",
@@ -253,11 +313,17 @@ function getFormDataWithout3DS(){
         "cartaoCredito.bandeira":  cartaoBandeira ? cartaoBandeira.value : "",
         "restApi":  true
     }
+
+    if (vendaModalidade && vendaModalidade.value === "2" && paymentInstallments.value !== ""){
+        body["venda.parcelas"] = paymentInstallments.value;
+    }
+
+    return body;
 }
 
 // Função para tentativa de venda sem autenticação 3DS, somente efetuada caso a venda seja na modalidade crédito
 function tryToBuyWithout3DS(message){
-    const MODALIDADE_CARTAO_CREDITO = "1";
+    const MODALIDADE_CARTAO_CREDITO = "2";
     const modalidadeVendaElem = document.getElementById("gmx-venda-modalidade");
     
     if (modalidadeVendaElem.value === MODALIDADE_CARTAO_CREDITO){
@@ -314,7 +380,10 @@ const bpmpi_config = () => ({
     
     // Várias funções executadas quando uma autenticação requisitada falhou por diversos motivos
     // Uma opção é capturarmos o erro e redirecionarmos para tentativa de venda sem autenticação 3DS
-    onFailure:          () => tryToBuyWithout3DS("Autenticação falhou"),
+    // No caso de falha (onFailure), será exibida a mensagem de erro do 3DS. Esta abordagem é necessária, pois
+    // caso o cliente cancele a autenticação, o 3DS retorna este erro, sendo prudente não prosseguir
+    // com tentativa de venda sem o 3DS, já que o usuário escolheu pelo cancelamento da transação.
+    onFailure:          () => end3dsAuthenticationError("Autenticação falhou"),
     onUnenrolled:       () => tryToBuyWithout3DS("Cartão não elegível para autenticação"),
     onDisabled:         () => tryToBuyWithout3DS("Empresa desabilitou autenticação"),
     onUnsupportedBrand: () => tryToBuyWithout3DS("Bandeira não suporta autenticação"),
@@ -328,10 +397,28 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("gmx-card-number").addEventListener("change", () => refreshCardData());
     // Atualiza tipo e bandeira do cartão após inserção do token de transação
     document.getElementById("gmx-transaction-token").addEventListener("change", () => refreshCardData());
+
+    // Atualizaa modalidade de venda a depender se débito (0) ou crédito (2 - parcelas por conta da loja)
+    document.getElementById("payment-installments").addEventListener("change", () => refreshVendaModalidade());
+
     refreshCardData(); // Atualizar dados do cartão imediatamente após carregamento da página também
+
+    refreshInstallmentList(); // Insere lista de modalidades de pagamento (débito/crédito e parcelas)
 
     // Interceptar submit do formulário e chamar autenticação 3DS quando o usuário clicar em "Enviar"
     document.getElementById("gmx-form").addEventListener("submit", e => {
+        // Obtém a quantidade de parcelas do select da página - caso seja débito, terá valor ""
+        const paymentInstallments = document.getElementById("payment-installments");
+
+        // Obtém o elemento da div de venda-parcelada, em que conterá (crédito) ou não (débito) o campo venda.parcelas
+        const parcelasVendaElem = jQuery("#venda-parcelada");
+        parcelasVendaElem.empty();
+
+        const vendaModalidade = document.getElementById("gmx-venda-modalidade");
+        if (vendaModalidade && vendaModalidade.value === "2" && paymentInstallments.value !== ""){
+            parcelasVendaElem.append('<input type="hidden" name="venda.parcelas" value="' + paymentInstallments.value + '" id="gmx-venda-parcelas">')
+        }
+
         // Se a autenticação 3DS já ocorreu com sucesso, enviar formulário normalmente
         if (cielo3dsState.authenticationStatus === "done") { return; }
 
