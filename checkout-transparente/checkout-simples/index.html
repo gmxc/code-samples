@@ -16,8 +16,7 @@
     <!-- Fim Bootstrap -->
 </head>
 <body>
-    <!-- <form class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded"> -->
-    <form class="container" action="http://localhost:9088/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
+    <form class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
         <h1 class="py-5">Checkout Transparente Simples</h1>
 
         <!-- Dados preparatórios -->
@@ -64,6 +63,7 @@
                     <input type="hidden" name="restApi" value="true"> <!-- Sempre true para ter retorno JSON -->
                     <input type="hidden" name="venda.modalidadeVenda" value="2" id="gmx-modalidade-venda"> <!-- Será preenchido por JavaScript (veja script.js) -->
                     <input type="hidden" id="cardType" value="0" /> <!-- Armazena o tipo de cartão somente com uso nesta página: débito (0), crédito (1) ou múltiplo (2), sendo adequadamente preenchido por JavaScript após a pesquisa pelo BIN do cartão -->
+                    <input type="hidden" id="foreignCard" value="false" /> <!-- Armazena se o cartão é ou não emitido no exterior -->
                     <!-- Fim Dados Hidden -->
                     <div class="form-row">
                         <div class="col-lg form-group">
