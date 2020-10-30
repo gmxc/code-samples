@@ -1,7 +1,15 @@
 "use strict";
 
 /** URL base do GmxCheckout. */
-const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
+const GMXCHECKOUT_BASE_URL = "https://www.gmxcheckout.com.br";
+
+/** Constante que definirá se as opções de parcelamento deverão ou não (true ou false, respectivamente)
+ *  ser exibidas quando o cartão fornecido for emitidos no exterior (informação do BIN do cartão).
+ *  Seu uso visa possibilitar o teste de parcelamento em cartões emitidos no exterior, normalmente
+ *  bloqueado pelas adquirentes CIELO e REDE.
+ *  DEFAULT = false
+ */
+const EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR = false;
 
 /** 
  * Função utilitária que exibe ou esconde um elemento.
@@ -112,9 +120,10 @@ function refreshInstallmentList() {
 
     // Somente cartões de crédito ou do tipo múltiplo (também com função crédito) permitidos
     if (cardType.value !== "0") {
-        // Caso seja cartão emitido no exterior, insere opção apenas de pagamento sem parcelamento (restrição da CIELO e da REDE)
+        // Caso a constante EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR for falsa e o cartão fornecido seja emitido no exterior,
+        // insere apenas a opção de pagamento sem parcelamento (restrição da CIELO e da REDE)
         // Caso contrário insere as opções de parcelamento
-        if (foreignCard.value === "true") {
+        if (!EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR && foreignCard.value === "true") {
             jQuery('#payment-installments').append(CREDITO_1x);
         } else {
             jQuery('#payment-installments').append(SELECIONE);
