@@ -10,13 +10,13 @@
     <!-- Não obrigatório, apenas usado para melhorar a aparência da página -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <!-- Fim Bootstrap -->
 </head>
 <body>
     <form class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
-
         <h1 class="py-5">Checkout Transparente Simples</h1>
 
         <!-- Dados preparatórios -->
@@ -61,8 +61,8 @@
                     </p>                    
                     <!-- Dados Hidden -->
                     <input type="hidden" name="restApi" value="true"> <!-- Sempre true para ter retorno JSON -->
-                    <input type="hidden" name="venda.modalidadeVenda" value="" id="gmx-modalidade-venda"> <!-- Será preenchido por JavaScript (veja script.js) -->
-                    <input type="hidden" name="cartaoCredito.bandeira" value="" id="gmx-cartao-bandeira"> <!-- Será preenchido por JavaScript (veja script.js) -->        
+                    <input type="hidden" name="venda.modalidadeVenda" value="2" id="gmx-modalidade-venda"> <!-- Será preenchido por JavaScript (veja script.js) -->
+                    <input type="hidden" id="cardType" value="0" /> <!-- Armazena o tipo de cartão somente com uso nesta página: débito (0), crédito (1) ou múltiplo (2), sendo adequadamente preenchido por JavaScript após a pesquisa pelo BIN do cartão -->
                     <!-- Fim Dados Hidden -->
                     <div class="form-row">
                         <div class="col-lg form-group">
@@ -76,23 +76,10 @@
                                 maxlength="60" 
                                 value="Fulano da Silva Júnior"
                             >
-                        </div>
-                        <div class="col-lg form-group">
-                            <label>Valor (em centavos de Real)</label>
-                            <input 
-                                type="number" 
-                                name="venda.valor" 
-                                class="form-control" 
-                                placeholder="Valor (em centavos de Real)" 
-                                required 
-                                min="0" 
-                                step="1" 
-                                value="100"
-                            >
-                        </div>
+                        </div> 
                     </div>
                     <div class="form-row">
-                        <div class="col-lg-6 form-group">
+                        <div class="col-lg-4 form-group">
                             <label>Número do Cartão</label>
                             <div class="input-group">
                                 <input 
@@ -110,12 +97,27 @@
                                     <span id="gmx-card-loading" class="input-group-text" style="display: none;">
                                         <span class="spinner-border spinner-border-sm"></span>
                                     </span>
-                                    <span id="gmx-card-type" class="input-group-text" style="display: none;">Crédito</span>
-                                    <span id="gmx-card-bandeira" class="input-group-text" style="display: none;">Visa</span>
-                                    <span id="gmx-card-error" class="input-group-text text-danger" style="display: none;">Erro</span>
+                                    <span id="gmx-card-error" class="input-group-text text-warning" style="display: none;" data-toggle="tooltip" data-placement="top" title="N&atilde;o foi poss&iacute;vel obter informa&ccedil;&otilde;es do BIN do cart&atilde;o"><i class="fa fa-exclamation-triangle"></i></span>
+                                    <span id="gmx-card-invalid-type" class="input-group-text text-danger" style="display: none;" data-toggle="tooltip" data-placement="top" title="Somente poss&iacute;vel uso de cart&atilde;o com fun&ccedil;&atilde;o cr&eacute;dito habilitada."><i class="fa fa-exclamation-triangle"></i></span>
+                                    <span id="gmx-card-info-ok" class="input-group-text text-success" style="display: none;"><i class="fa fa-check" aria-hidden="true"></i></span>
                                 </div>
                             </div>
                             <small class="form-text text-muted">Apenas dígitos</small>
+                        </div>
+                        <div class="col-lg-3 form-group">
+                            <label>Bandeira</label>
+                            <select id="bandeira" name="cartaoCredito.bandeira" class="form-control">
+                                <option value="">Selecione</option>
+                                <option value="visa">VISA</option>
+                                <option value="mastercard">MASTERCARD</option>
+                                <option value="elo">ELO</option>
+                                <option value="diners">DINERS</option>
+                                <option value="discover">DISCOVER</option>
+                                <option value="amex">AMEX</option>
+                                <option value="jcb">JCB</option>
+                                <option value="aura">AURA</option>
+                                <option value="hiper">HIPERCARD</option>
+                            </select>
                         </div>
                         <div class="col-lg-3 form-group">
                             <label>Validade</label>
@@ -146,7 +148,7 @@
                                 >
                             </div>
                         </div>
-                        <div class="col-lg-3 form-group">
+                        <div class="col-lg-2 form-group">
                             <label>CVV</label>
                             <input
                                 type="text"
@@ -159,13 +161,48 @@
                             >
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="col-lg form-group">
+                            <label>Valor (em centavos de Real)</label>
+                            <input 
+                                type="number" 
+                                name="venda.valor" 
+                                class="form-control" 
+                                placeholder="Valor (em centavos de Real)" 
+                                required 
+                                min="0" 
+                                step="1" 
+                                value="100"
+                            >
+                        </div>
+                        <div class="col-lg form-group">
+                            <label>Op&ccedil;&otilde;es de Pagamento</label>
+                            <select class="form-control" name="venda.parcelas" id="payment-installments">
+                                <option value="">Selecione</option>
+                                <option value="1">Cr&eacute;dito - 1x</option>
+                                <option value="2">Cr&eacute;dito - parcelada em 2x</option>
+                                <option value="3">Cr&eacute;dito - parcelada em 3x</option>
+                                <option value="4">Cr&eacute;dito - parcelada em 4x</option>
+                                <option value="5">Cr&eacute;dito - parcelada em 5x</option>
+                                <option value="6">Cr&eacute;dito - parcelada em 6x</option>
+                                <option value="7">Cr&eacute;dito - parcelada em 7x</option>
+                                <option value="8">Cr&eacute;dito - parcelada em 8x</option>
+                                <option value="9">Cr&eacute;dito - parcelada em 9x</option>
+                                <optio" value="10">Cr&eacute;dito - parcelada em 10x</option>
+                                <option value="11">Cr&eacute;dito - parcelada em 11x</option>
+                                <option value="12">Cr&eacute;dito - parcelada em 12x</option>
+                            </select>
+                        </div>                         
+                    </div>
                 </div>
             </main>
         </section>
         <!-- Fim dados gmxCheckout -->
 
 
-        <button class="btn btn-success btn-block btn-lg my-5">Enviar</button>
+        <span id="error-data" class="input-group-text text-danger" style="display: none;">Verifique os dados acima e corrija o(s) erro(s) para prosseguir!</i></span>
+        
+        <button id="btn-enviar" class="btn btn-success btn-block btn-lg my-5">Enviar</button>
     </form>
 
     <script src="./script.js"></script>
