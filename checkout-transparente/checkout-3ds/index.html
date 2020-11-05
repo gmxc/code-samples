@@ -15,7 +15,7 @@
     <!-- Fim Bootstrap -->
 </head>
 <body>
-    <form id="gmx-form" class="container" action="https://gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
+    <form id="gmx-form" class="container" action="https://www.gmxcheckout.com.br/txn/post" method="POST" enctype="application/x-www-form-urlencoded">
         <h1 class="py-5">Checkout Transparente com 3DS Cielo</h1>
 
         <!-- Dados preparatórios -->
@@ -93,6 +93,7 @@
                     <input type="hidden" name="restApi" id="restApi" value="true"> <!-- Sempre true para ter retorno JSON -->
                     <input type="hidden" name="venda.modalidadeVenda" value="" id="gmx-venda-modalidade"> <!-- Será preenchido por JavaScript (veja script.js) -->
                     <input type="hidden" id="cardType" value="2" /> <!-- Armazena o tipo de cartão somente com uso nesta página: débito (0), crédito (1) ou múltiplo (2), sendo adequadamente preenchido por JavaScript após a pesquisa pelo BIN do cartão -->
+                    <input type="hidden" id="foreignCard" value="false" /> <!-- Armazena se o cartão é ou não emitido no exterior -->
                     <div id="venda-parcelada">
                         <!-- O campo será inserido com valor preenchido ou será retirado a depender da modalidade de venda por JavaScript (veja script.js) -->
                         <input type="hidden" name="venda.parcelas" value="" id="gmx-venda-parcelas">
@@ -231,7 +232,7 @@
                                 <option value="7">Cr&eacute;dito - parcelada em 7x</option>
                                 <option value="8">Cr&eacute;dito - parcelada em 8x</option>
                                 <option value="9">Cr&eacute;dito - parcelada em 9x</option>
-                                <optio" value="10">Cr&eacute;dito - parcelada em 10x</option>
+                                <option value="10">Cr&eacute;dito - parcelada em 10x</option>
                                 <option value="11">Cr&eacute;dito - parcelada em 11x</option>
                                 <option value="12">Cr&eacute;dito - parcelada em 12x</option>
                             </select>

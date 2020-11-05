@@ -1,8 +1,16 @@
 "use strict";
 
 /** URL base do GmxCheckout. */
-const GMXCHECKOUT_BASE_URL = "https://gmxcheckout.com.br";
+const GMXCHECKOUT_BASE_URL = "https://www.gmxcheckout.com.br";
 
+
+/** Constante que definirá se as opções de parcelamento deverão ou não (true ou false, respectivamente)
+ *  ser exibidas quando o cartão fornecido for emitidos no exterior (informação do BIN do cartão).
+ *  Seu uso visa possibilitar o teste de parcelamento em cartões emitidos no exterior, normalmente
+ *  bloqueado pelas adquirentes CIELO e REDE.
+ *  DEFAULT = false
+ */
+const EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR = false;
 
 /** 
  * Função utilitária que exibe ou esconde um elemento.
@@ -32,21 +40,34 @@ async function refreshCardData() {
 
     const bandeiraElem = document.getElementById("bandeira");
     const cardType = document.getElementById("cardType");
+    const foreignCard = document.getElementById("foreignCard");
+
+    const paymentInstallmentsElem = document.getElementById("payment-installments");
+
+    const btnEnviarElem = document.getElementById("btn-enviar");
 
     // Exibir apenas elemento de "loading"
     toggle(true, loadingElem);
     toggle(false, cardErrorElem, cardInvalidTypeElem, errorDataElem, cardInfoOkElem);
 
+    // Desabilita a caixa de seleção de opções de pagamento e a caixa de seleção da bandeira até que os dados do cartão tenham sido buscados
+    paymentInstallmentsElem.disabled = true;
+    bandeiraElem.disabled = true;
+
+    // Garante que o botão de envio da transação esteja habilitado,pois ele poderá ser desabilitado caso
+    // o cartão fornecido seja de débito, sem função crédito
+    btnEnviarElem.disabled = false; 
+
     try {
         const data = await getCardData();
-
-        document.getElementById("btn-enviar").disabled = false; 
 
         if (data.cardType === "credito") {
             cardType.value = "1";
             toggle(true, cardInfoOkElem);
         } else if (data.cardType === "debito") {
-            document.getElementById("btn-enviar").disabled = true; 
+            // Desabilita o botão de envio da transação caso o cartão seja apenas de débito
+            btnEnviarElem.disabled = true;
+
             toggle(false, cardInfoOkElem);
             toggle(true, cardInvalidTypeElem, errorDataElem);
             cardType.value = "0";
@@ -56,16 +77,22 @@ async function refreshCardData() {
         }
 
         bandeiraElem.value = data.provider;
+        foreignCard.value = data.foreignCard;
 
     } catch (e) {
         console.error(e);
         toggle(true, cardErrorElem);
         cardType.value = "2";
+        foreignCard.value = "false";
     } finally {
         toggle(false, loadingElem);
     }
 
     refreshInstallmentList();
+
+    // Habilita a caixa de seleção de opções de pagamento e a caixa de seleção da bandeira após busca dos dados do cartão e atualização da lista de opções de pagamento
+    paymentInstallmentsElem.disabled = false;
+    bandeiraElem.disabled = false;    
 }
 
 /**
@@ -91,11 +118,20 @@ function refreshInstallmentList() {
 
     const cardType = document.getElementById("cardType");
     jQuery('#payment-installments').empty();
+
+    // Somente cartões de crédito ou do tipo múltiplo (também com função crédito) permitidos
     if (cardType.value !== "0") {
-        jQuery('#payment-installments').append(SELECIONE);
-        CREDITO.forEach( (creditoOption) => {
-            jQuery('#payment-installments').append(creditoOption);
-        });        
+        // Caso a constante EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR for falsa e o cartão fornecido seja emitido no exterior,
+        // insere apenas a opção de pagamento sem parcelamento (restrição da CIELO e da REDE)
+        // Caso contrário insere as opções de parcelamento
+        if (!EXIBE_OPCOES_PARCELAMENTO_CARTAO_EMITIDO_EXTERIOR && foreignCard.value === "true") {
+            jQuery('#payment-installments').append(CREDITO_1x);
+        } else {
+            jQuery('#payment-installments').append(SELECIONE);
+            CREDITO.forEach( (creditoOption) => {
+                jQuery('#payment-installments').append(creditoOption);
+            });
+        }
     }
 }
 
