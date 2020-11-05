@@ -3,6 +3,7 @@
 /** URL base do GmxCheckout. */
 const GMXCHECKOUT_BASE_URL = "https://www.gmxcheckout.com.br";
 
+
 /** Constante que definirá se as opções de parcelamento deverão ou não (true ou false, respectivamente)
  *  ser exibidas quando o cartão fornecido for emitidos no exterior (informação do BIN do cartão).
  *  Seu uso visa possibilitar o teste de parcelamento em cartões emitidos no exterior, normalmente
