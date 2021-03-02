@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Pix</title>
+
+    <!-- Bootstrap -->
+    <!-- Não obrigatório, apenas usado para melhorar a aparência da página -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <!-- Fim Bootstrap -->
+   
+    <script defer src="./utils.js"></script>
+    <script defer src="./backend.js"></script>
+    <script defer src="./frontend.js"></script>
+</head>
+<body>
+    <header class="container">        
+        <h1 class="py-5">Checkout Pix</h1>
+    </header>
+
+    <section id="page-before-cobranca" class="container">
+        
+        <!-- Dados confidenciais -->
+        <section class="card my-2">
+            <header class="card-header text-white bg-danger" data-toggle="collapse" data-target="#dados-confidenciais-body" style="cursor: pointer;">
+                Dados Confidenciais
+            </header>
+            <main id="dados-confidenciais-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações devem estar apenas em seu back-end e <strong>nunca devem ser expostas ao usuário</strong>.
+                        Elas apenas estão nesta página para fins de exemplo.
+                    </p>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Chave DICT</label>
+                            <input
+                                id="chave-dict"
+                                type="text" 
+                                class="form-control"
+                                required
+                            >
+                        </div>
+                        <div class="col form-group">
+                            <label>Token da API</label>
+                            <input
+                                id="api-token"
+                                type="text" 
+                                class="form-control" 
+                                required
+                            >
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados confidenciais -->
+
+        <!-- Dados gmxCheckout -->
+        <section class="card my-2">
+            <header class="card-header" data-toggle="collapse" data-target="#dados-gmxcheckout-body" style="cursor: pointer;">
+                Dados Pix
+            </header>
+            <main id="dados-gmxcheckout-body" class="collapse show">
+                <div class="card-body container-fluid">
+                    <p>
+                        Estas informações são requeridas pelo gmxCheckout para a criação de uma cobrança Pix.
+                    </p>
+                    <div class="row form-row">
+                        <div class="col form-group">
+                            <label>CPF ou CNPJ</label>
+                            <input 
+                                id="cpf-cnpj"
+                                type="text"
+                                class="form-control" 
+                                value="15199902008"
+                                minlength="11"
+                                maxlength="14"
+                            >
+                            <small class="form-text text-muted">Somente números</small>
+                        </div>
+                        <div class="col form-group">
+                            <label>Nome ou Razão Social</label>
+                            <input 
+                                id="nome"
+                                type="text"
+                                class="form-control" 
+                                value="Fulano da Silva"
+                                maxlength="200"
+                            >
+                        </div>
+                    </div>
+                    <div class="row form-row">
+                        <div class="col form-group">
+                            <label>Valor</label>
+                            <input 
+                                id="valor"
+                                type="text"
+                                class="form-control" 
+                                placeholder="Valor"
+                                value="0.01"
+                            >
+                            <small class="form-text text-muted">Utilize ponto (.) para decimais</small>
+                        </div>
+                        <div class="col form-group">
+                            <label>Expiração em segundos</label>
+                            <input 
+                                id="expiracao"
+                                type="number"
+                                class="form-control" 
+                                value="3600"
+                                min="1"
+                            >
+                        </div>
+                    </div>
+                    <div class="row form-row">
+                        <div class="col form-group">
+                            <label>Descrição da cobrança</label>
+                            <input 
+                                id="solicitacao-pagador"
+                                type="text"
+                                class="form-control"
+                                value="Exemplo de cobrança"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        <!-- Fim dados gmxCheckout -->
+        
+        <button id="btn-gerar-cobranca" type="button" class="btn btn-success btn-block btn-lg my-5">
+            <span 
+                id="btn-gerar-cobranca-spinner" 
+                class="spinner-border"
+                style="display: none;"
+            ></span>
+            <span id="btn-gerar-cobranca-text">                
+                Gerar Cobrança
+            </span>
+        </button>
+    </section>
+
+    <section id="page-waiting-cobranca" class="container" style="display: none; ">
+        <div class="row">
+            <div class="col text-center">
+                Utilize o QR Code abaixo para realizar o pagamento da cobrança.
+                A página será atualizada automaticamente quando o pagamento for realizado.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <div id="qr-code-spinner" class="p-5">
+                    <span class="spinner-border"></span>
+                </div>
+                <img id="qr-code" style="display: none;">
+            </div>
+        </div>
+    </section>
+
+    <section id="page-after-cobranca" class="container" style="display: none; ">
+        <div class="row">
+            <div class="col display-2 text-center text-success">
+                Pagamento realizado com sucesso
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
