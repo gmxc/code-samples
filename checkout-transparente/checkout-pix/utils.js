@@ -42,19 +42,3 @@ function hide(elementOrId) { toggle(elementOrId, false); }
 function extractValue(elementOrId) {
     return String(getElement(elementOrId).value) || '';
 }
-
-/**
- * Transforma uma Blob em uma Data URL.
- * @param {Blob} blob Blob a ser lida
- * @returns {Promise<string>} Data URL gerada a partir do Blob.
- */
-function blobToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-        const fileReader = new FileReader();
-        fileReader.addEventListener("error", e => reject(e));
-        fileReader.addEventListener("abort", e => reject(e));
-        fileReader.addEventListener("loadend", () => resolve(fileReader.result));
-
-        fileReader.readAsDataURL(blob);
-    });
-}

@@ -69,11 +69,6 @@ async function BACKEND_criarCobranca(cobranca) {
 
     BACKEND_throwIfNoToken();
 
-    const chave = extractValue("chave-dict");
-    if (!chave) {
-        throw "Chave DICT obrigatória para a geração de cobranças";
-    }
-
     // Gerar um TXID aleatório
     // Recomenda-se o uso de um UUID/GUID ao invés de um esquema customizado
     // Como a biblioteca padrão do JavaScript não oferece geração de UUIDs,
@@ -88,8 +83,6 @@ async function BACKEND_criarCobranca(cobranca) {
     }
 
     const body = {
-        chave: extractValue("chave-dict"),
-
         calendario: {
             expiracao: cobranca.expiracao,
         },
@@ -121,16 +114,25 @@ async function BACKEND_criarCobranca(cobranca) {
     return txid;
 }
 
+
+/**
+ * Códigos de uma cobrança
+ * @typedef CobrancaCodigos
+ * @property {string} copiaCola Código copia/cola
+ * @property {string} brCode BR Code, bytes em base64
+ * @property {string} brCodeContentType Tipo MIME dos bytes em brCode
+ */
+
 /**
  * Gera o BR Code de uma cobrança.
  * @param {string} txid TXID da cobrança
- * @param {number} tamanho Tamanho em pixels da imagem a ser gerada.
- * @returns {Promise<Blob>} Dados da imagem contendo o BR Code da cobrança.
+ * @param {number} tamanho Tamanho em pixels do BR Code a ser gerado.
+ * @returns {Promise<CobrancaCodigos>} Códigos da cobrança.
  */
-async function BACKEND_gerarBrCode(txid, tamanho = 512) {
+async function BACKEND_gerarCodigos(txid, tamanho = 512) {
     BACKEND_throwIfNoToken();
 
-    const url = new URL(`${BACKEND_BASE_API}/cob/${txid}/brcode`);
+    const url = new URL(`${BACKEND_BASE_API}/cob/${txid}/codigos`);
     url.searchParams.append("tamanho", String(tamanho));
 
     const response = await fetch(url, {
@@ -142,7 +144,7 @@ async function BACKEND_gerarBrCode(txid, tamanho = 512) {
         throw response.status;
     }
 
-    return response.blob();
+    return response.json();
 }
 
 /**

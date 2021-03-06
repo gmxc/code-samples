@@ -39,13 +39,15 @@ async function gerarCobranca() {
     hide("page-before-cobranca");
     show("page-waiting-cobranca");
 
-    const brCode = await BACKEND_gerarBrCode(txid);
-    const dataUrl = await blobToDataUrl(brCode);
+    const codigos = await BACKEND_gerarCodigos(txid);
+    const dataUrl = `data:${codigos.brCodeContentType};base64,${codigos.brCode}`;
 
     document.getElementById("qr-code").src = dataUrl;
+    document.getElementById("codigo-copia-cola").value = codigos.copiaCola;
     
     hide("qr-code-spinner");
     show("qr-code");
+    show("codigo-copia-cola-wrapper");
 
     // Recomenda-se a utilização de WebSocket ou Server-Sent Events (SSE) 
     // para que a página seja avisada de quando a cobrança foi paga com sucesso
@@ -95,4 +97,23 @@ document.getElementById("btn-gerar-cobranca").addEventListener("click", async e 
         hide("btn-gerar-cobranca-spinner");
         gerarCobrancaLoading = false;
     }    
+});
+
+let codigoCopiaColaBtnLatestTimeout = null;
+document.getElementById("codigo-copia-cola-btn").addEventListener("click", e => {
+    e.preventDefault();
+    navigator.clipboard.writeText(
+        document.getElementById("codigo-copia-cola").value
+    );
+
+    e.target.classList.remove('btn-outline-secondary');
+    e.target.classList.add('btn-outline-success');
+    e.target.innerText = 'Copiado';
+
+    clearTimeout(codigoCopiaColaBtnLatestTimeout);
+    codigoCopiaColaBtnLatestTimeout = setTimeout(() => {
+        e.target.classList.add('btn-outline-secondary');
+        e.target.classList.remove('btn-outline-success');
+        e.target.innerText = 'Copiar';
+    }, 5000);
 });

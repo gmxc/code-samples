@@ -39,15 +39,6 @@
                     </p>
                     <div class="form-row">
                         <div class="col form-group">
-                            <label>Chave DICT</label>
-                            <input
-                                id="chave-dict"
-                                type="text" 
-                                class="form-control"
-                                required
-                            >
-                        </div>
-                        <div class="col form-group">
                             <label>Token da API</label>
                             <input
                                 id="api-token"
@@ -160,6 +151,22 @@
                     <span class="spinner-border"></span>
                 </div>
                 <img id="qr-code" style="display: none;">
+            </div>
+        </div>
+        <div class="row" id="codigo-copia-cola-wrapper"  style="display: none; ">
+            <div class="col-12 text-center pb-5">
+                Caso não seja possível escanear o QR Code acima, copie o código abaixo e utilize a função
+                "Pix Copia e Cola" para realizar o pagamento.
+            </div>
+            <div class="col form-group">
+                <div class="input-group">
+                    <input id="codigo-copia-cola" type="text" readonly class="form-control">
+                    <div class="input-group-append">
+                        <button id="codigo-copia-cola-btn" type="button" class="btn btn-outline-secondary">
+                            Copiar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
