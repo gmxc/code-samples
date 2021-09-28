@@ -236,7 +236,7 @@ async function getCardData() {
     }
 
     const json = await response.json();
-    if (json.status !== "00") {
+    if ("fail" === json.status) {
         throw new Error(json.errorMessage || "Erro desconhecido");
     }
 
